@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import datetime
 
 class Good(object):
     prise = None
@@ -18,10 +19,13 @@ class Warehouse(object):
 
     dict_count_goods = {}
     list_goods = []
+    path_to_warehouse_save = ''
 
-    def __init__(self):
+    def __init__(self, path_to_warehouse_save):
         self.dict_count_goods = {}
         self.list_goods = []
+        self.path_to_warehouse_save = path_to_warehouse_save
+        self.read_csv()
 
     def add_new_good(self, good):
         if good in self.list_goods:
@@ -71,7 +75,11 @@ class Warehouse(object):
         return dict_manufacturer
 
 
-    def read_csv(self, path):
+    def read_csv(self, path=''):
+
+        if path == '':
+            path = self.path_to_warehouse_save
+
         df = pd.read_csv(path)
         for i in range(df.shape[0]):
             if df.iloc[i]['name'] in self.dict_count_goods:
@@ -81,6 +89,19 @@ class Warehouse(object):
                 self.add_new_good(goods)
                 self.add_good(df.iloc[i]['name'], df.iloc[i]['count'])
 
+    def to_csv(self, path):
+        dict_values = {'name':[], 'prise':[], 'size':[], 'manufacturer':[], 'count':[]}
+
+        for good in self.list_goods:
+            dict_values['name'].append(good.name)
+            dict_values['prise'].append(good.prise)
+            dict_values['size'].append(good.size)
+            dict_values['manufacturer'].append(good.manufacturer)
+            dict_values['count'].append(self.dict_count_goods[good.name])
+
+        df = pd.DataFrame(dict_values)
+        df.to_csv(f'''{path}_{datetime.now()}''')
+
 
 
 class Command(object):
@@ -89,10 +110,12 @@ class Command(object):
         'add_good',
         'look',
         'read_csv',
+        'to_csv',
         'del',
         'stat_size',
         'stat_manufacturer',
         'help',
+        'stop',
     ]
 
     def execute_command(self, run_command, warehouse):
@@ -127,6 +150,12 @@ class Command(object):
             print(warehouse.read_csv(path))
             print('------------------')
 
+        elif run_command == 'to_csv':
+            print('Введите  path')
+            path = input()
+            print(warehouse.to_csv(path))
+            print('------------------')
+
         elif run_command == 'del':
             print('Введите  name')
             name = input()
@@ -148,6 +177,10 @@ class Command(object):
             print(self.list_command)
             print('------------------')
 
+        elif run_command == 'stop':
+            print(warehouse.to_csv())
+            print('------------------')
+
 
 # ====================================================
 
@@ -165,12 +198,18 @@ df.to_csv('goods_file.csv', index=False)
 
 
 command = Command()
-warehouse = Warehouse()
-print('comand:\n ', command.list_command)
+warehouse = Warehouse('goods_file.csv')
 
-while True:
+print('comand:\n ', command.list_command)
+work = True
+
+while work:
+
     run_command = input()
     command.execute_command(run_command, warehouse)
+
+    if run_command == 'stop':
+        work = False
 
 
 
