@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, DATETIME
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import func
@@ -7,42 +7,54 @@ from sqlalchemy import func
 Base = declarative_base()
 
 
-class Good_tb(Base):
+class Product_tb(Base):
 
-    __tablename__ = 'good'
-    id = Column(Integer, primary_key=True)
+    __tablename__ = 'product'
+    sku = Column(Integer, primary_key=True)
     name = Column(String(50))
     prise = Column(Integer)
-    manufacturer = Column(String(50))
-    size = Column(String(50))
-    count = Column(Integer)
+    brand = Column(String(50))
+    quantity = Column(Integer)
 
-    def __init__(self, name, prise, manufacturer, size, count=0):
+    def __init__(self, sku, name, prise, brand,  quantity=0):
+        self.sku = sku
         self.name = name
         self.prise = prise
-        self.manufacturer = manufacturer
-        self.size = size
-        self.count = count
+        self.brand = brand
+        self.quantity = quantity
 
     def __repr__(self):
-        return "<Good('%s','%s', '%s')>" % (self.name, self.prise, self.manufacturer, self.size, self.count)
+        return "<Good('%s','%s', '%s')>" % (self.sku, self.name, self.prise, self.brand, self.quantity)
 
 
-# class Warehouse_tb(Base):
-#
-#     __tablename__ = 'warehouse'
-#     id = Column(Integer, primary_key=True)
-#     id_good = Column(Integer, ForeignKey('good.id'))
-#     count = Column(Integer)
-#
-#
-#     def __init__(self, id_good, count):
-#         self.id_good = id_good
-#         self.count = count
-#
-#
-#     def __repr__(self):
-#         return "<Good('%s','%s', '%s')>" % (self.id_good, self.count)
+class Tshirt_product_tb(Base):
+
+    __tablename__ = 'tshirt_product'
+    sku = Column(Integer, ForeignKey('product.id'))
+    size = Column(String(50))
+    color = Column(String(50))
+
+    def __init__(self, sku, size, color):
+        self.sku = sku
+        self.size = size
+        self.color = color
+
+    def __repr__(self):
+        return "<Good('%s','%s', '%s')>" % (self.sku, self.size, self.color)
+
+
+class Food_product_tb(Base):
+
+    __tablename__ = 'food_product'
+    sku = Column(Integer, ForeignKey('product.id'))
+    shelf_life = Column(DATETIME)
+
+    def __init__(self, sku, shelf_life):
+        self.sku = sku
+        self.shelf_life = shelf_life
+
+    def __repr__(self):
+        return "<Good('%s','%s', '%s')>" % (self.shelf_life)
 
 
 def connect(user, pwd, host='localhost', echo=True):
