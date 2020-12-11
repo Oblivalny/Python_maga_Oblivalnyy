@@ -30,7 +30,8 @@ class Product_tb(Base):
 class Tshirt_product_tb(Base):
 
     __tablename__ = 'tshirt_product'
-    sku = Column(Integer, ForeignKey('product.id'))
+    id = Column(Integer, primary_key=True)
+    sku = Column(Integer, ForeignKey('product.sku'))
     size = Column(String(50))
     color = Column(String(50))
 
@@ -46,7 +47,8 @@ class Tshirt_product_tb(Base):
 class Food_product_tb(Base):
 
     __tablename__ = 'food_product'
-    sku = Column(Integer, ForeignKey('product.id'))
+    id = Column(Integer, primary_key=True)
+    sku = Column(Integer, ForeignKey('product.sku'))
     shelf_life = Column(DATETIME)
 
     def __init__(self, sku, shelf_life):

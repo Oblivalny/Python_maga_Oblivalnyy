@@ -3,8 +3,6 @@ from datetime import datetime
 from db_mysql import *
 
 
-
-
 class Product(object):
     sku = None
     prise = None
@@ -16,6 +14,8 @@ class Product(object):
         if console:
             print('Введите  sku')
             self.sku = int(input())
+            print('Введите  name')
+            self.name = int(input())
             print('Введите  prise')
             self.prise = int(input())
             print('Введите  brand')
@@ -37,7 +37,7 @@ class Product(object):
         else:
             session.query(Product_tb).filter(
                 Product_tb.sku == self.sku).update(
-                {Product_tb.count: Product_tb.quantity+self.quantity}, synchronize_session=False)
+                {Product_tb.quantity: Product_tb.quantity+self.quantity}, synchronize_session=False)
             session.commit()
 
 
@@ -78,78 +78,75 @@ class FoodProduct(Product):
             session.commit()
 
 
-class Warehouse(object):
-
-    dict_count_goods = {}
-    list_goods = []
-    path_to_warehouse_save = ''
-
-    def __init__(self, path_to_warehouse_save):
-        self.dict_count_goods = {}
-        self.list_goods = []
-        self.path_to_warehouse_save = path_to_warehouse_save
-        # self.read_csv()
-
-    def add_new_good(self, good):
-        new_good = Product_tb(good.name, good.prise, good.brand, good.size)
-        session.add(new_good)
-        session.commit()
-
-    def add_good(self, name, count):
-        session.query(Product_tb).filter(Product_tb.name == name).update({Product_tb.count: Product_tb.count+count}, synchronize_session=False)
-        session.commit()
-
-    def del_good(self, name, count):
-        old_val = session.query(Product_tb).filter(Product_tb.name == name).first().count
-        if old_val - count < 0:
-            print(f'''На складе нет такого количества товаров. В наличии всего {old_val}''')
-        else:
-            self.add_good(name, count*-1)
-
-    def get_count_goods(self):
-        for row in session.query(Product_tb).all():
-            print(row.name, row.count)
-
-    def get_stat_size(self):
-        for row in session.query(Product_tb.size, func.count(Product_tb.size)).group_by(Product_tb.size).all():
-            print(row)
-
-    def get_stat_brand(self):
-        for row in session.query(Product_tb.brand, func.count(Product_tb.brand)).group_by(Product_tb.brand).all():
-            print(row)
-
-    def read_csv(self, path=''):
-        if path == '':
-            path = self.path_to_warehouse_save
-
-        df = pd.read_csv(path)
-        for i in range(df.shape[0]):
-            if session.query(Product_tb).filter_by(name=df.iloc[i]['name']).first() is None:
-                self.add_good(df.iloc[i]['name'], df.iloc[i]['count'])
-            else:
-                goods = Good(df.iloc[i]['name'], df.iloc[i]['prise'], df.iloc[i]['size'], df.iloc[i]['brand'])
-                self.add_new_good(goods)
-                self.add_good(df.iloc[i]['name'], df.iloc[i]['count'])
-
-    def to_csv(self, path=''):
-
-        if path == '':
-            path = self.path_to_warehouse_save
-
-        dict_values = {'name':[], 'prise':[], 'size':[], 'brand':[], 'count':[]}
-        for good in session.query(Product_tb).all():
-            dict_values['name'].append(good.name)
-            dict_values['prise'].append(good.prise)
-            dict_values['size'].append(good.size)
-            dict_values['brand'].append(good.brand)
-            dict_values['count'].append(good.count)
-
-        df = pd.DataFrame(dict_values)
-        df.to_csv(f'''{path}_{str(datetime.now().date())}''')
+# class Warehouse(object):
+#
+#     dict_count_goods = {}
+#     list_goods = []
+#     path_to_warehouse_save = ''
+#
+#     def __init__(self, path_to_warehouse_save):
+#         self.dict_count_goods = {}
+#         self.list_goods = []
+#         self.path_to_warehouse_save = path_to_warehouse_save
+#         # self.read_csv()
+#
+#     def add_good(self, name, count):
+#         session.query(Product_tb).filter(Product_tb.name == name).update({Product_tb.count: Product_tb.count+count}, synchronize_session=False)
+#         session.commit()
+#
+#     def del_good(self, name, count):
+#         old_val = session.query(Product_tb).filter(Product_tb.name == name).first().count
+#         if old_val - count < 0:
+#             print(f'''На складе нет такого количества товаров. В наличии всего {old_val}''')
+#         else:
+#             self.add_good(name, count*-1)
+#
+#     def get_count_goods(self):
+#         for row in session.query(Product_tb).all():
+#             print(row.name, row.count)
+#
+#     def get_stat_size(self):
+#         for row in session.query(Product_tb.size, func.count(Product_tb.size)).group_by(Product_tb.size).all():
+#             print(row)
+#
+#     def get_stat_brand(self):
+#         for row in session.query(Product_tb.brand, func.count(Product_tb.brand)).group_by(Product_tb.brand).all():
+#             print(row)
+#
+#     def read_csv(self, path=''):
+#         if path == '':
+#             path = self.path_to_warehouse_save
+#
+#         df = pd.read_csv(path)
+#         for i in range(df.shape[0]):
+#             if session.query(Product_tb).filter_by(name=df.iloc[i]['name']).first() is None:
+#                 self.add_good(df.iloc[i]['name'], df.iloc[i]['count'])
+#             else:
+#                 goods = Good(df.iloc[i]['name'], df.iloc[i]['prise'], df.iloc[i]['size'], df.iloc[i]['brand'])
+#                 self.add_new_good(goods)
+#                 self.add_good(df.iloc[i]['name'], df.iloc[i]['count'])
+#
+#     def to_csv(self, path=''):
+#
+#         if path == '':
+#             path = self.path_to_warehouse_save
+#
+#         dict_values = {'name':[], 'prise':[], 'size':[], 'brand':[], 'count':[]}
+#         for good in session.query(Product_tb).all():
+#             dict_values['name'].append(good.name)
+#             dict_values['prise'].append(good.prise)
+#             dict_values['size'].append(good.size)
+#             dict_values['brand'].append(good.brand)
+#             dict_values['count'].append(good.count)
+#
+#         df = pd.DataFrame(dict_values)
+#         df.to_csv(f'''{path}_{str(datetime.now().date())}''')
 
 
 class Command(object):
-    warehouse = Warehouse('goods_file.csv')
+    # warehouse = Warehouse('goods_file.csv')
+
+    warehouse = []
 
     engine = None
     session = None
@@ -158,14 +155,17 @@ class Command(object):
 
     list_command = [
         'add_good',
-        'look',
-        'read_csv',
-        'to_csv',
-        'del',
+        'select_good',
+        'look_select_good',
+        'look_all_good',
+        # 'read_csv',
+        # 'to_csv',
+        # 'del',
         'stat_size',
         'stat_brand',
         'help',
         'stop',
+        'remove_in_warehouse',
     ]
 
     def __init__(self, username='root', pw='root', echo=False, migration_db=True):
@@ -174,8 +174,7 @@ class Command(object):
         if migration_db:
             migration(self.engine)
 
-
-    def execute_command(self, run_command, warehouse):
+    def execute_command(self, run_command):
 
         if run_command == 'add_good':
             print(f'''Выберите тип товара: {self.list_product}''')
@@ -197,41 +196,71 @@ class Command(object):
 
             print('------------------')
 
-        # elif run_command == 'look':
-        #     print(warehouse.get_count_goods())
-        #     print('------------------')
+        elif run_command == 'look_all_good':
 
+            self.session.query(Product_tb)
+            for good in self.session.query(Product_tb).all():
+                print("sku=", good.sku, " name=",good.name, " prise=", good.prise,
+                      " brand=", good.brand, " quantity=", good.quantity)
+            print('------------------')
 
-        #
+        elif run_command == 'look_select_good':
+            for good in self.warehouse:
+                print("sku=", good.sku, " name=", good.name, " quantity=", good.quantity)
+            print('------------------')
+
+        elif run_command == 'select_good':
+            print('Введите  sku')
+            sku = int(input())
+            good = self.session.query(Product_tb).filter_by(sku=sku).first()
+            if good is None:
+                print('Товар не найден')
+            else:
+                print(f'''Всего товара в наличии {good.quantity}''')
+                print('Введите количество')
+                count = int(input())
+                if count <= good.quantity:
+                    good.quantity -= count
+                    self.warehouse.append(good)
+                else:
+                    print('Ошибка: Выбранно больше товаров чем есть в наличии')
+
+            print('------------------')
+
         # elif run_command == 'read_csv':
         #     print('Введите  path')
         #     path = input()
         #     print(warehouse.read_csv(path))
         #     print('------------------')
-        #
+
         # elif run_command == 'to_csv':
         #     print('Введите  path')
         #     path = input()
         #     print(warehouse.to_csv(path))
         #     print('------------------')
-        #
-        # elif run_command == 'del':
-        #     print('Введите  name')
+
+
+        # elif run_command == 'remove_in_warehouse':
+        #     print('Введите  sku')
         #     name = input()
         #     print('Введите  count')
         #     count = int(input())
         #
-        #     warehouse.del_good(name, count)
-        #     print('------------------')
-        #
+        #     for good in self.warehouse:
+        #         if good.name == name:
+        #             if good.quantity >= count:
+        #                 good.quantity -= count
+        #             else:
+        #                 good.quantity = 0
+
         # elif run_command == 'stat_size':
         #     print(warehouse.get_stat_size())
         #     print('------------------')
-        #
+        # #
         # elif run_command == 'stat_brand':
         #     print(warehouse.get_stat_brand())
         #     print('------------------')
-        #
+        # #
         # elif run_command == 'help':
         #     print(self.list_command)
         #     print('------------------')
@@ -258,7 +287,7 @@ df.to_csv('goods_file.csv', index=False)
 
 
 command = Command('root', 'root')
-
+# warehouse = Warehouse()
 
 print('comand:\n ', command.list_command)
 work = True
@@ -266,7 +295,7 @@ work = True
 while work:
 
     run_command = input()
-    command.execute_command(run_command, warehouse)
+    command.execute_command(run_command)
 
     if run_command == 'stop':
         work = False
